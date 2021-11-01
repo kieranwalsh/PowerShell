@@ -2,14 +2,19 @@
     Filename: Update-AllPSModules.ps1
     Contributors: Kieran Walsh
     Created: 2021-01-09
-    Last Updated: 2021-10-25
-    Version: 1.36.00
+    Last Updated: 2021-11-01
+    Version: 1.37.00
 #>
 
 if($PSVersionTable.psversion -lt [version]'5.0.0')
 {
     Write-Warning -Message "This script only works with PowerShell 5.0 or newer. You are running $($PSVersionTable.PSVersion)"
     break
+}
+if($ExecutionContext.SessionState.LanguageMode -eq 'ConstrainedLanguage')
+{
+    Write-Warning 'Constrained Language mode is enabled, so the script cannot continue.'
+    continue
 }
 
 $CurrentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
