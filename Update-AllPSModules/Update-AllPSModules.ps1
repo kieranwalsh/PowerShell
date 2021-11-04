@@ -2,9 +2,14 @@
     Filename: Update-AllPSModules.ps1
     Contributors: Kieran Walsh
     Created: 2021-01-09
-    Last Updated: 2021-11-01
-    Version: 1.37.00
+    Last Updated: 2021-11-04
+    Version: 1.40.00
 #>
+[CmdletBinding()]
+Param(
+    [Parameter]
+    [switch]$NoPreviews
+)
 
 if($PSVersionTable.psversion -lt [version]'5.0.0')
 {
@@ -124,6 +129,7 @@ Where-Object -FilterScript {
     $_.name -notmatch 'PackageManagement|PowerShellGet|Az\.|AzureRM\.|Azure\.'
 } |
 Sort-Object -Property 'Name'
+
 if($InstalledModules)
 {
     Write-Host -Object " - $(($InstalledModules | Measure-Object).count) modules found."
@@ -138,42 +144,81 @@ if($InstalledModules)
 
     foreach($InstalledModule in $InstalledModules)
     {
-        $Module = Get-InstalledModule -Name $InstalledModule.Name -AllowPrerelease -AllVersions |
-        Sort-Object -Property {
-            [version](($_.Version -split '-')[0])
-        } -Descending |
-        Select-Object -First 1
-
-        Write-Host -Object ("{0,-$MaxNameWidth}{1,-$MaxVersionWidth}" -f $Module.Name, $Module.Version) -NoNewline -ForegroundColor 'White'
-
-        try
+        Write-Host -Object ("{0,-$MaxNameWidth}" -f $InstalledModule.Name ) -NoNewline
+        if($NoPreviews)
         {
-            $LatestAvailable = Find-Module -Name $InstalledModule.Name -ErrorAction Stop
+            try
+            {
+                $Module = Get-InstalledModule -Name $InstalledModule.Name -AllVersions |
+                Sort-Object -Property {
+                    [version](($_.Version -split '-')[0])
+                } -Descending |
+                Select-Object -First 1
+                $LatestAvailable = Find-Module -Name $InstalledModule.Name -ErrorAction Stop
+            }
+            catch
+            {
+                $Failed += $InstalledModule
+                continue
+            }
         }
-        catch
+        Else
         {
-            $Failed += $InstalledModule
-            continue
+            try
+            {
+                $Module = Get-InstalledModule -Name $InstalledModule.Name -AllowPrerelease -AllVersions |
+                Sort-Object -Property {
+                    [version](($_.Version -split '-')[0])
+                } -Descending |
+                Select-Object -First 1
+                $LatestAvailable = Find-Module -Name $InstalledModule.Name  -AllowPrerelease -ErrorAction Stop
+            }
+            catch
+            {
+                $Failed += $InstalledModule
+                continue
+            }
         }
-
-        if (([version](($Module.Version -split ('-'))[0])) -ge ([version](($LatestAvailable.Version -split ('-'))[0])))
+        Write-Host -Object ("{0,-$MaxVersionWidth}" -f $Module.Version) -NoNewline
+        if(([version](($Module.Version -replace '[a-z]*', '').Replace('-', '.') -replace '\.$', '')) -ge ([version](($LatestAvailable.Version -replace '[a-z]*', '').Replace('-', '.') -replace '\.$', '')))
         {
             Write-Host -Object $([char]0x2714) -ForegroundColor 'Green'
         }
         else
         {
+            $AllUsersFailed = $false
             $Gap = (20 - (($LatestAvailable.version).length))
-            Write-Host -Object ("Online version found: '{0}' - attempting to update. {1,$Gap}" -f $($LatestAvailable.version), ' ') -ForegroundColor 'Yellow' -NoNewline
-            try
-            {
-                Update-Module -AcceptLicense -AllowPrerelease -Force -Name $Module.Name -Scope 'AllUsers' -ErrorAction 'Stop'
-                Write-Host -Object $([char]0x2714) -ForegroundColor 'Green'
-            }
-            catch
+            Write-Host -Object ("Online version found: '{0}' - attempting to update. {1,$Gap}" -f "$($LatestAvailable.version)' - Published '$(Get-Date($LatestAvailable.PublishedDate) -Format 'yyyy-MM-dd')", ' ') -ForegroundColor 'Yellow' -NoNewline
+            If($NoPreviews)
             {
                 try
                 {
-                    Update-Module -AcceptLicense -AllowPrerelease -Force -Name $Module.Name -Scope 'CurrentUser' -ErrorAction 'Stop'
+                    Update-Module -AcceptLicense -Force -Name $Module.Name -Scope 'AllUsers' -ErrorAction 'Stop'
+                    Write-Host -Object $([char]0x2714) -ForegroundColor 'Green'
+                }
+                catch
+                {
+                    $AllUsersFailed = $true
+                }
+            }
+            Else
+            {
+
+                try
+                {
+                    Update-Module -AcceptLicense -AllowPrerelease -RequiredVersion $LatestAvailable.version -Force -Name $Module.Name -Scope 'AllUsers' -ErrorAction 'Stop'
+                    Write-Host -Object $([char]0x2714) -ForegroundColor 'Green'
+                }
+                catch
+                {
+                    $AllUsersFailed = $true
+                }
+            }
+            if($AllUsersFailed)
+            {
+                try
+                {
+                    Update-Module -AcceptLicense -AllowPrerelease -RequiredVersion $LatestAvailable.version -Force -Name $Module.Name -Scope 'CurrentUser' -ErrorAction 'Stop'
                     Write-Host -Object $([char]0x2714) -ForegroundColor 'Green' -NoNewline
                     Write-Host -Object " ('Current User' scope only)" -ForegroundColor 'Yellow'
                 }
@@ -186,14 +231,14 @@ if($InstalledModules)
                         Uninstall-Module -Name $Module.Name -AllowPrerelease -AllVersions -Force -ErrorAction 'Stop'
                         try
                         {
-                            Install-Module -Name $Module.Name -AcceptLicense -AllowClobber -AllowPrerelease -Force -Scope 'AllUsers' -SkipPublisherCheck -ErrorAction 'Stop'
+                            Install-Module -Name $Module.Name -RequiredVersion $LatestAvailable.version -AcceptLicense -AllowClobber -AllowPrerelease -Force -Scope 'AllUsers' -SkipPublisherCheck -ErrorAction 'Stop'
                             Write-Host -Object $([char]0x2714) -ForegroundColor 'Green'
                         }
                         catch
                         {
                             try
                             {
-                                Install-Module -Name $Module.Name -AcceptLicense -AllowClobber -AllowPrerelease -Force -Scope 'CurrentUser' -SkipPublisherCheck -ErrorAction 'Stop'
+                                Install-Module -Name $Module.Name -RequiredVersion $LatestAvailable.version -AcceptLicense -AllowClobber -AllowPrerelease -Force -Scope 'CurrentUser' -SkipPublisherCheck -ErrorAction 'Stop'
                                 Write-Host -Object $([char]0x2714) -ForegroundColor 'Green' -NoNewline
                                 Write-Host -Object " ('Current User' scope only)" -ForegroundColor 'Yellow'
                             }
