@@ -3,7 +3,7 @@
     Contributors: Kieran Walsh
     Created: 2021-01-09
     Last Updated: 2021-11-04
-    Version: 1.40.00
+    Version: 1.43.00
 #>
 [CmdletBinding()]
 Param(
@@ -23,20 +23,36 @@ if($ExecutionContext.SessionState.LanguageMode -eq 'ConstrainedLanguage')
 }
 
 $CurrentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-If(-not(New-Object -TypeName Security.Principal.WindowsPrincipal -ArgumentList $CurrentUser).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator))
+If(-not(New-Object -TypeName 'Security.Principal.WindowsPrincipal' -ArgumentList $CurrentUser).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator))
 {
-    Write-Host -ForegroundColor Red -Object 'The script is not being run as administrator so cannot continue.'
+    Write-Host -ForegroundColor 'Red' -Object 'The script is not being run as administrator so cannot continue.'
     Break
 }
 $StartTime = Get-Date
 
-[Net.ServicePointManager]::SecurityProtocol = 'tls12'
-[System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $NewSessionRequired = $false
-$RegisteredRepositories = Get-PSRepository -Name 'PSGallery'
+try
+{
+    $RegisteredRepositories = Get-PSRepository -ErrorAction 'Stop' -WarningAction 'Stop'
+}
+catch
+{
+    Write-Warning "Unable to query 'PSGallery' online. The script cannot continue - check your proxy/firewall settings."
+    break
+}
+
 if($RegisteredRepositories -notmatch 'PSGallery')
 {
-    Set-PSRepository -Name 'PSGallery' -InstallationPolicy 'Trusted'
+    try
+    {
+        Set-PSRepository -Name 'PSGallery' -InstallationPolicy 'Trusted' -ErrorAction 'Stop'
+    }
+    catch
+    {
+        'Unable to Set the PSRepository'
+        break
+    }
 }
 
 Write-Host -Object "Checking which version of the 'PackageManagement' module is installed locally" -NoNewline
@@ -126,7 +142,7 @@ Write-Host -Object 'Searching for all locally installed modules' -NoNewline
 
 $InstalledModules = Get-InstalledModule |
 Where-Object -FilterScript {
-    $_.name -notmatch 'PackageManagement|PowerShellGet|Az\.|AzureRM\.|Azure\.'
+    ($_.name -notmatch 'PackageManagement|PowerShellGet|Az\.|AzureRM\.|Azure\.|PSReadline')
 } |
 Sort-Object -Property 'Name'
 
@@ -203,7 +219,6 @@ if($InstalledModules)
             }
             Else
             {
-
                 try
                 {
                     Update-Module -AcceptLicense -AllowPrerelease -RequiredVersion $LatestAvailable.version -Force -Name $Module.Name -Scope 'AllUsers' -ErrorAction 'Stop'
