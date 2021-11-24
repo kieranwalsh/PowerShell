@@ -1,9 +1,9 @@
 ﻿<#
-    Filename: Update-AllPSModules.ps1
-    Contributors: Kieran Walsh
-    Created: 2021-01-09
-    Last Updated: 2021-11-04
-    Version: 1.43.00
+    Filename:       Update-AllPSModules.ps1
+    Contributors:   Kieran Walsh
+    Created:        2021-01-09
+    Last Updated:   2021-11-04
+    Version:        1.43.00
 #>
 [CmdletBinding()]
 Param(
