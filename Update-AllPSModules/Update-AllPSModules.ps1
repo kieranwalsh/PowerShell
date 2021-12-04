@@ -187,7 +187,7 @@ if($InstalledModules)
                     [version](($_.Version -split '-')[0])
                 } -Descending |
                 Select-Object -First 1
-                $LatestAvailable = Find-Module -Name $InstalledModule.Name  -AllowPrerelease -ErrorAction Stop
+                $LatestAvailable = Find-Module -Name $InstalledModule.Name -AllowPrerelease -ErrorAction Stop
             }
             catch
             {
