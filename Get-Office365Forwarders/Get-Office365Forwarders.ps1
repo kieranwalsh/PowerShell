@@ -34,8 +34,8 @@
     Filename: Get-Office365Forwarders.ps1
     Contributors: Kieran Walsh
     Created: 2021-11-26
-    Last Updated: 2021-12-03
-    Version: 0.04.03
+    Last Updated: 2021-12-05
+    Version: 0.04.04
 #>
 
 [CmdletBinding()]
@@ -47,6 +47,22 @@ Param(
     [switch]$IncludeInternal,
     [string[]]$EmailAddresses
 )
+
+try
+{
+    $OS = (Get-WmiObject -Class Win32_OperatingSystem -ErrorAction Stop).caption
+}
+catch
+{
+    Write-Warning 'Unable to query operating system name. This script has been tested for Windows only so cannot continue.'
+    break
+}
+
+if($OS -notmatch 'Windows')
+{
+    Write-Warning 'This script has been tested for Windows only so cannot continue.'
+    break
+}
 
 $RequiredModules = @(
     'ExchangeOnlineManagement'
@@ -87,9 +103,13 @@ if($MissingModules)
     }
     Else
     {
-        Write-Warning 'Unble to continue.'
+        Write-Warning 'Unable to continue.'
         break
     }
+}
+
+$RequiredModules | ForEach-Object {
+    Import-Module $_ -Force
 }
 
 try
