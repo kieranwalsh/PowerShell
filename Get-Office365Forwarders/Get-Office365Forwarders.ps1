@@ -34,8 +34,8 @@
     Filename: Get-Office365Forwarders.ps1
     Contributors: Kieran Walsh
     Created: 2021-11-26
-    Last Updated: 2021-12-05
-    Version: 0.04.04
+    Last Updated: 2021-12-06
+    Version: 0.04.05
 #>
 
 [CmdletBinding()]
@@ -140,6 +140,7 @@ if(-not($AcceptedDomains))
     'You are not connected to Office 365. Connect and try again.'
     break
 }
+
 $SiteName = $((Get-MsolCompanyInformation).DisplayName)
 Write-Host -Object "You are connected to the '$SiteName' tenancy. Is this the one you wish to query? (Y/N)"
 $Answer = Read-Host
@@ -150,6 +151,10 @@ If($Answer.ToUpper() -ne 'Y')
     Write-Host 'I have closed the existing connections. Please re-run the script to connect to the correct Office 365 tenancy.'
     Break
 }
+
+Write-Host "The following domains are in the 'Accepted Domains' list so anything else is considered external:"
+$AcceptedDomains | ForEach-Object {"`t$_"}
+' '
 
 $Mailboxes = @()
 $StartTime = Get-Date

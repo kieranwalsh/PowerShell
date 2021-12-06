@@ -2,12 +2,12 @@
     Filename:       Update-AllPSModules.ps1
     Contributors:   Kieran Walsh
     Created:        2021-01-09
-    Last Updated:   2021-11-04
-    Version:        1.43.00
+    Last Updated:   2021-12-06
+    Version:        1.43.01
 #>
 [CmdletBinding()]
 Param(
-    [Parameter]
+    [Parameter()]
     [switch]$NoPreviews
 )
 
