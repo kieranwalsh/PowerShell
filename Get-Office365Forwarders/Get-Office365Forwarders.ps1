@@ -34,8 +34,8 @@
     Filename: Get-Office365Forwarders.ps1
     Contributors: Kieran Walsh
     Created: 2021-11-26
-    Last Updated: 2021-12-06
-    Version: 0.04.05
+    Last Updated: 2021-12-08
+    Version: 0.04.06
 #>
 
 [CmdletBinding()]
@@ -234,6 +234,7 @@ $Output = foreach ($Mailbox In $Mailboxes)
             if($Rule.ForwardTo -or $Rule.ForwardAsAttachmentTo -or $Rule.RedirectTo)
             {
                 $ForwardingAddresses = @(
+                    $Rule.DeliverToMailboxAndForward
                     $Rule.ForwardTo
                     $Rule.ForwardAsAttachmentTo
                     $Rule.RedirectTo
@@ -247,6 +248,10 @@ $Output = foreach ($Mailbox In $Mailboxes)
                     {
                         if($EmailDomain)
                         {
+                            if($Rule.DeliverToMailboxAndForward)
+                            {
+                                $String = 'forwards to'
+                            }
                             if($Rule.ForwardTo)
                             {
                                 $String = 'forwards to'
