@@ -1,5 +1,7 @@
 # Update-AllPSModules
 
+This link  is being kept up for historical reasons, but the project can now be found [here](https://github.com/kieranwalsh/Update-AllPSModules)
+
 This script will update all locally installed PowerShell modules to the latest version it can find online. It will also attempt to update PackageManagement and PowerShellGet so that it can update to pre-release versions.
 
 You can use the '-NoPreviews' switch to avoid modules with 'beta', 'nightly', 'preview' etc., in the name.
