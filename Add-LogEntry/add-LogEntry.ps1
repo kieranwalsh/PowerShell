@@ -113,7 +113,7 @@
         Contributors: Kieran Walsh
         Created: 2018-01-12
         Last Updated: 2023-02-21
-        Version: 0.08.01
+        Version: 0.08.02
     #>
     [CmdletBinding()]
     Param
@@ -154,7 +154,13 @@
     {
         $Type = '[ERROR]'
         $ForegroundColor = 'Red'
-    }if($IsSuccess)
+    }
+    if($IsPrompt)
+    {
+        $Type = '[PROMPT]'
+        $ForegroundColor = 'Yellow'
+    }
+    if($IsSuccess)
     {
         $Type = '[SUCCESS]'
         $ForegroundColor = 'Green'
@@ -162,11 +168,6 @@
     if($IsWarning)
     {
         $Type = '[WARNING]'
-        $ForegroundColor = 'Yellow'
-    }
-    if($IsWarning)
-    {
-        $Type = '[PROMPT]'
         $ForegroundColor = 'Yellow'
     }
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
