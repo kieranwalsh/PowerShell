@@ -35,6 +35,9 @@
     .PARAMETER IsError
     Marks the entry as [Error] in the logfile and colours the data in RED in the host.
 
+    .PARAMETER IsPrompt
+    Marks the entry as [Prompt] in the logfile and colours the data in YELLOW in the host.
+
     .PARAMETER IsSuccess
     Marks the entry as [Success] in the logfile and colours the data in GREEN in the host.
 
@@ -109,8 +112,8 @@
         Filename: add-LogEntry.ps1
         Contributors: Kieran Walsh
         Created: 2018-01-12
-        Last Updated: 2021-10-08
-        Version: 0.08.00
+        Last Updated: 2023-02-21
+        Version: 0.08.01
     #>
     [CmdletBinding()]
     Param
@@ -124,6 +127,7 @@
         [switch]$DoubleIndent,
         [switch]$Indent,
         [switch]$IsError,
+        [switch]$IsPrompt,
         [switch]$IsSuccess,
         [switch]$IsWarning,
         [switch]$TripleIndent
@@ -158,6 +162,11 @@
     if($IsWarning)
     {
         $Type = '[WARNING]'
+        $ForegroundColor = 'Yellow'
+    }
+    if($IsWarning)
+    {
+        $Type = '[PROMPT]'
         $ForegroundColor = 'Yellow'
     }
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
