@@ -115,8 +115,8 @@
         Filename: add-LogEntry.ps1
         Contributors: Kieran Walsh
         Created: 2018-01-12
-        Last Updated: 2023-02-21
-        Version: 0.08.01
+        Last Updated: 2023-02-24
+        Version: 0.09.00
     #>
     [CmdletBinding()]
     Param
@@ -175,7 +175,11 @@
         $ForegroundColor = 'Yellow'
     }
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
-    if($ClearLog)
+    if($BlankLine)
+    {
+        "{0,-22}{1,-11}{2,-$Space}{3}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | Out-File -FilePath $LogFile -Encoding 'utf8'
+    }
+    Elseif($ClearLog)
     {
         "{0,-22}{1,-11}{2,-$Space}{3}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Type, ' ', $Output | Out-File -FilePath $LogFile -Encoding 'utf8'
     }
@@ -183,89 +187,4 @@
     {
         "{0,-22}{1,-11}{2,-$Space}{3}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Type, ' ', $Output | Out-File -FilePath $LogFile -Encoding 'utf8' -Append
     }
-}
-
-function stop-Script
-{
-    <#
-    functionName: stop-Script
-    Contributors: Kieran Walsh
-    Created: 2019-01-22
-    Last Updated: 2023-02-21
-    Version: 1.02.00
-#>
-    [CmdletBinding()]
-    Param
-    (
-        [Parameter()]
-        [string]$ExitCode = 128,
-        [string]$ErrorMessage = $null
-    )
-    $EndTime = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    $TimeTaken = ''
-    $TakenSpan = New-TimeSpan -Start $StartTime -End $EndTime
-    if($TakenSpan.Days)
-    {
-        $TimeTaken += "$($TakenSpan.Days) days, $($TakenSpan.Hours) hours, $($TakenSpan.Minutes) minutes, $($TakenSpan.Seconds) seconds"
-    }
-    elseif($TakenSpan.Hours)
-    {
-        $TimeTaken += "$($TakenSpan.Hours) hours, $($TakenSpan.Minutes) minutes, $($TakenSpan.Seconds) seconds"
-    }
-    elseif($TakenSpan.Minutes)
-    {
-        $TimeTaken += "$($TakenSpan.Minutes) minutes, $($TakenSpan.Seconds) seconds"
-    }
-    elseif($TakenSpan.Seconds)
-    {
-        $TimeTaken += "$($TakenSpan.Seconds) seconds"
-    }
-    else
-    {
-        $TimeTaken = 'under a second'
-    }
-
-    if($ExitCode -ne 0)
-    {
-        add-LogEntry -Message 'Last error data:'
-        if($ErrorMessage)
-        {
-            add-LogEntry -Message "'$ErrorMessage'" -Indent -IsError
-        }
-        add-LogEntry -Message "Error message: '$(($error[0].exception.message).Trim())'." -Indent
-        add-LogEntry -Message "Error exception: '$($error[0].Exception.GetType().FullName)'." -Indent
-        add-LogEntry -Message "Error on line number: '$($error[0].invocationinfo.ScriptLineNumber)'." -Indent
-    }
-    if(Test-Path -Path $LogFile)
-    {
-        $NewlogStart = (Select-String -Pattern 'Starting script' $LogFile | Select-Object -ExpandProperty LineNumber | Select-Object -Last 1) - 1
-        $NewLogContent = Get-Content -Path $LogFile | Select-Object -Skip $NewlogStart
-        $TotalErrors = $NewLogContent | Select-String -Pattern '[ERROR]' -SimpleMatch
-        $TotalWarnings = $NewLogContent | Select-String -Pattern '[WARNING]' -SimpleMatch
-    }
-    Else
-    {
-        $TotalErrors = $NewLogContent | Select-String -Pattern '[ERROR]' -SimpleMatch
-        $TotalWarnings = $NewLogContent | Select-String -Pattern '[WARNING]' -SimpleMatch
-    }
-
-    $ResultString = 'It completed with'
-    if($TotalErrors -and $TotalWarnings)
-    {
-        $ResultString += " $($TotalErrors.Count) errors and $($TotalWarnings.Count) warnings"
-    }
-    elseif($TotalErrors)
-    {
-        $ResultString += " $($TotalErrors.count) errors"
-    }
-    elseif($TotalWarnings)
-    {
-        $ResultString += " $($TotalWarnings.count) warnings"
-    }
-    else
-    {
-        $ResultString += 'out any errors'
-    }
-    add-LogEntry -Output "The script took $TimeTaken. Exit code: $ExitCode. $ResultString."
-    exit
 }
