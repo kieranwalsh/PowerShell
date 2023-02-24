@@ -116,14 +116,14 @@
         Contributors: Kieran Walsh
         Created: 2018-01-12
         Last Updated: 2023-02-24
-        Version: 0.09.01
+        Version: 0.10.00
     #>
     [CmdletBinding()]
     Param
     (
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [Alias('Message')]
-        [string]$Output,
+        [string]$Output= $(if($BlankLine)),
         [int]$IndentSize = 4,
         [string]$LogFile = 'C:\Windows\Temp\file.log',
         [switch]$BlankLine,
