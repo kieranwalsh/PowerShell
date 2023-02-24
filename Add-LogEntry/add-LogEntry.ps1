@@ -123,7 +123,18 @@
     (
         [Parameter()]
         [Alias('Message')]
-        [string]$Output= $(if($BlankLine)),
+        [string]$Output = $(if(
+            (-not($BlankLine)) -and
+            (null -eq $Output)
+            )
+            {
+                $Output = Read-Host 'Please specify the output you wish to log'
+            }
+            Elseif($BlankLine)
+            {
+                $Output = ''
+            }
+        ),
         [int]$IndentSize = 4,
         [string]$LogFile = 'C:\Windows\Temp\file.log',
         [switch]$BlankLine,
@@ -174,10 +185,7 @@
         $Type = '[WARNING]'
         $ForegroundColor = 'Yellow'
     }
-    if($BlankLine)
-    {
-        $Output = ''
-    }
+
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
     if($BlankLine)
     {
