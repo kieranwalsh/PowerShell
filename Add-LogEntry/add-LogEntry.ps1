@@ -116,7 +116,7 @@
         Contributors: Kieran Walsh
         Created: 2018-01-12
         Last Updated: 2023-02-24
-        Version: 0.09.00
+        Version: 0.09.01
     #>
     [CmdletBinding()]
     Param
@@ -173,6 +173,10 @@
     {
         $Type = '[WARNING]'
         $ForegroundColor = 'Yellow'
+    }
+    if($BlankLine)
+    {
+        $Output = ''
     }
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
     if($BlankLine)
