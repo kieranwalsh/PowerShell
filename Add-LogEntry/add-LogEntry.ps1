@@ -116,7 +116,7 @@
         Contributors: Kieran Walsh
         Created: 2018-01-12
         Last Updated: 2023-02-24
-        Version: 0.10.00
+        Version: 0.10.02
     #>
     [CmdletBinding()]
     Param
@@ -189,7 +189,7 @@
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
     if($BlankLine)
     {
-        '{0,-22}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | Out-File -FilePath $LogFile -Encoding 'utf8'
+        '{0,-22}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | Out-File -FilePath $LogFile -Encoding 'utf8' -Append
     }
     Elseif($ClearLog)
     {
