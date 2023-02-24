@@ -189,7 +189,7 @@
     Write-Host -Object $Output -ForegroundColor $ForegroundColor
     if($BlankLine)
     {
-        "{0,-22}{1,-11}{2,-$Space}{3}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | Out-File -FilePath $LogFile -Encoding 'utf8'
+        '{0,-22}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | Out-File -FilePath $LogFile -Encoding 'utf8'
     }
     Elseif($ClearLog)
     {
