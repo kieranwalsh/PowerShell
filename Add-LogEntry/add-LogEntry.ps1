@@ -47,6 +47,9 @@
     .PARAMETER IsWarning
     Marks the entry as [Warning] in the logfile and colours the data in YELLOW in the host.
 
+    .PARAMETER IsDebug
+    Marks the entry as [Debug] in the logfile and colours the data in CYAN in the host.
+
     .EXAMPLE
     add-LogEntry -Output "Starting script"
     Host:
@@ -115,8 +118,8 @@
         Filename: add-LogEntry.ps1
         Contributors: Kieran Walsh
         Created: 2018-01-12
-        Last Updated: 2023-02-24
-        Version: 0.10.02
+        Last Updated: 2023-09-14
+        Version: 0.11.00
     #>
     [CmdletBinding()]
     Param
@@ -141,6 +144,7 @@
         [switch]$ClearLog,
         [switch]$DoubleIndent,
         [switch]$Indent,
+        [switch]$IsDebug,
         [switch]$IsError,
         [switch]$IsPrompt,
         [switch]$IsSuccess,
