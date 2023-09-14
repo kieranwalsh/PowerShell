@@ -169,6 +169,11 @@
         $Space = 1
     }
     $Type = 'INFO'
+    if($IsDebug)
+    {
+        $Type = '[DEBUG]'
+        $ForegroundColor = 'Cyan'
+    }
     if($IsError)
     {
         $Type = '[ERROR]'
