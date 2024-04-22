@@ -27,13 +27,7 @@
     The number of spaces that text is indented by. The default is 4.
 
     .PARAMETER Indent
-    Data that you want to indent by IndentSize spaces. Can help readability in some situations.
-
-    .PARAMETER DoubleIndent
-    Data that you want to indent by 2 X IndentSize spaces.
-
-    .PARAMETER TripleIndent
-    Data that you want to indent by 3 X IndentSize spaces.
+    Data that you want to indent by IndentSize x Indent spaces. Can help readability in some situations.
 
     .PARAMETER IsError
     Marks the entry as [Error] in the logfile and colours the data in RED in the host.
@@ -69,8 +63,8 @@
 
     .EXAMPLE
     add-LogEntry -Output "Querying computer '$computer'"
-    add-LogEntry -Output "Processor: $CPU" -indent
-    add-LogEntry -Output "Memory: $RAM" -indent
+    add-LogEntry -Output "Processor: $CPU" -indent 1
+    add-LogEntry -Output "Memory: $RAM" -indent 1
 
     Host:
         Querying computer 'PC01'
@@ -86,18 +80,18 @@
     add-LogEntry -Output 'Checking if all required Windows Features are installed:'
     foreach($RequiredWindowsFeature in $RequiredWindowsFeatures)
     {
-        add-LogEntry -Output $RequiredWindowsFeature -Indent
+        add-LogEntry -Output $RequiredWindowsFeature -Indent 1
         If (-not(Get-WindowsFeature -Name $RequiredWindowsFeature).Installed)
         {
-            add-LogEntry -Output 'Feature is missing, will attempt to install now.' -DoubleIndent
+            add-LogEntry -Output 'Feature is missing, will attempt to install now.' -indent 2
             try
             {
                 $null = Add-WindowsFeature -Name $RequiredWindowsFeature -ErrorAction Stop
-                add-LogEntry -Output 'Success' -IsSuccess -DoubleIndent
+                add-LogEntry -Output 'Success' -IsSuccess -indent 2
             }
             catch
             {
-                add-LogEntry -Output "Failed to install '$RequiredWindowsFeature'" -DoubleIndent -IsError
+                add-LogEntry -Output "Failed to install '$RequiredWindowsFeature'" -indent 2 -IsError
             }
         }
     }
@@ -118,8 +112,8 @@
         Filename: add-LogEntry.ps1
         Contributors: Kieran Walsh
         Created: 2018-01-12
-        Last Updated: 2023-09-14
-        Version: 0.11.00
+        Last Updated: 2024-04-18
+        Version: 1.13.00
     #>
     [CmdletBinding()]
     Param
@@ -127,8 +121,8 @@
         [Parameter()]
         [Alias('Message')]
         [string]$Output = $(if(
-            (-not($BlankLine)) -and
-            (null -eq $Output)
+            (-not($BlankLine) -and (-not($Clearlog))) -and
+            ($null -eq $Output)
             )
             {
                 $Output = Read-Host 'Please specify the output you wish to log'
@@ -142,27 +136,17 @@
         [string]$LogFile = 'C:\Windows\Temp\file.log',
         [switch]$BlankLine,
         [switch]$ClearLog,
-        [switch]$DoubleIndent,
-        [switch]$Indent,
+        [int]$Indent,
         [switch]$IsDebug,
         [switch]$IsError,
         [switch]$IsPrompt,
         [switch]$IsSuccess,
-        [switch]$IsWarning,
-        [switch]$TripleIndent
+        [switch]$IsWarning
     )
     $ForegroundColor = 'White'
-    if($DoubleIndent)
+    if($Indent)
     {
-        $Space = ($IndentSize * 2) + 1
-    }
-    Elseif($Indent)
-    {
-        $Space = $IndentSize + 1
-    }
-    Elseif($TripleIndent)
-    {
-        $Space = ($IndentSize * 3) + 1
+        $Space = ($IndentSize * $Indent) + 1
     }
     Else
     {
@@ -202,7 +186,7 @@
     }
     Elseif($ClearLog)
     {
-        "{0,-22}{1,-11}{2,-$Space}{3}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Type, ' ', $Output | Out-File -FilePath $LogFile -Encoding 'utf8'
+        Clear-Content -Path $LogFile
     }
     Else
     {
